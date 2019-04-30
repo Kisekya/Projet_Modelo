@@ -5,6 +5,44 @@
 #include <math.h>
 using namespace std;
 
+/////   Fonction Read
+
+string read_file(string file){
+    ifstream fichier (file);
+    string data;
+    string line;
+    if (fichier) {
+        while(getline(fichier , line)){
+            data+=line+"\n"; 
+    }fichier.close();
+} else cerr << "Impossible d'ouvrir le fichier !" << endl;	
+    cout << data;
+}
+
+
+///////  Fonction Write
+
+void write_file(string file, string content){
+	ofstream fichier(file);
+	if(fichier){
+		fichier << content;
+		fichier.close();
+	} else cerr << "Impossible d'ouvrir le fichier !" << endl;
+
+
+}
+ //////// Affichage en colonne 
+
+string cbind( vector<double> s1 , vector<double> s2 , string c1 , string c2){
+    string data;
+    data = c1+" "+c2+"\n";
+    for (unsigned i=0; i< s1.size() ; i++ ){
+        string tmpst1=to_string(s1.at(i));
+        string tmpst2=to_string(s2.at(i));
+        data+= tmpst1+" "+tmpst2+"\n";
+    } return data;
+    }
+
 
 // implémentation du modèle Hindmash-Rose
 
@@ -32,14 +70,43 @@ vector<double> sim(double duration, double dt) {
     return x_values;
 }
 
+/////// Stocker les vitesses calculées: 
+
+
+vector<double> GetV( vector<double> x_val){
+    vector<double> V_values; 
+    for (unsigned i=0 ; i< x_val.size() ; i ++){
+        double tmp = 40*(x_val.at(i)-0.5);
+        V_values.push_back(tmp);
+    }
+    return V_values;
+    
+}
+
+///////  Stocker les temps incrémenté à 0.1
+
+vector<double> GetTime ( double duration , double dt){
+    vector<double> time_values;
+    for ( unsigned i=0 ; i < duration ; i+=dt){
+        time_values.push_back(i);
+    }
+    return time_values;
+}
 
 int main(int argc, char** argv) {
-    if (argc == 1) {
+    if (argc != 4) {
         cerr << "Usage : comute <duration> <dt> <target_file>\nduration : simulation duration(ms)\ndt : bin (ms)\ntarget_file : output file name" << endl;
-    } else {
-        vector<double> x_values = sim(argv[1], argv[2]);
-        vector<double> V_values;
-        .... // calculer V(t) pour x(t) du vecteur x_values
+    } else if ( argc == 4) {
+        string t = " Time ";
+        string v = " V(t)";
+        string::size_type st;
+        double duration = stod( argv[1],&st);
+        double dt = stod( argv[2],&st);
+        vector<double> x_values = sim(duration, dt);
+        vector<double> V_values = GetV( x_values);
+        vector<double> Time = GetTime( duration, dt );
+        string data = cbind(Time,x_values,t, v);
+        write_file ( argv[3], data);
         cout << argv[3] << " written" << endl;
     }
     return 0;
